@@ -21,7 +21,7 @@ app.use(cors());
 app.use(express.json());
 
 // Serve portrait images and built frontend
-app.use('/portraits', express.static(path.join(process.cwd(), 'portraits')));
+app.use('/portraits', express.static(path.join(__dirname, '../portraits')));
 
 const CLIENT_DIST = path.resolve(__dirname, '../../client/dist');
 app.use(express.static(CLIENT_DIST));
