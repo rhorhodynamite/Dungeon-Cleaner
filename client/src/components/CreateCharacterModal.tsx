@@ -26,6 +26,12 @@ export default function CreateCharacterModal({ onClose, onCreated }: Props) {
   function prev() { setSlideDir(-1); setCharIndex(i => (i - 1 + TOTAL) % TOTAL); }
   function next() { setSlideDir(1);  setCharIndex(i => (i + 1) % TOTAL); }
 
+  // Preload all portrait images when step 2 opens so carousel is instant
+  useEffect(() => {
+    if (step !== 'class') return;
+    CHARACTERS.forEach(c => { new Image().src = `/portraits/${c.id}.png`; });
+  }, [step]);
+
   // Keyboard navigation on step 2
   useEffect(() => {
     if (step !== 'class') return;

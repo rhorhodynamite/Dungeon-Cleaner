@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
+import rateLimit from 'express-rate-limit';
 import db from './db';
 import usersRouter from './routes/users';
 import skillsRouter from './routes/skills';
@@ -26,8 +27,16 @@ app.use('/portraits', express.static(path.join(__dirname, '../portraits')));
 const CLIENT_DIST = path.resolve(__dirname, '../../client/dist');
 app.use(express.static(CLIENT_DIST));
 
+// Rate limit party lookups (join attempts) only
+const joinLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many attempts, try again in 15 minutes' },
+});
+
 // Parties — no auth required
-app.use('/api/parties', partiesRouter);
+app.post('/api/parties', partiesRouter);
+app.get('/api/parties/:code', joinLimiter, partiesRouter);
 
 // Party middleware — all /api routes below require X-Party-Code
 function requireParty(req: Request, res: Response, next: NextFunction) {
