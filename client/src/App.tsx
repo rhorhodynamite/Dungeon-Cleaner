@@ -27,7 +27,7 @@ function FloatingXP({ xp, color }: { xp: number; color: string }) {
   );
 }
 
-export default function App() {
+export default function App({ onLeave }: { onLeave?: () => void }) {
   const [tab, setTab] = useState<Tab>('quests');
   const [users, setUsers] = useState<User[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -36,6 +36,10 @@ export default function App() {
   const [highlightSkillId, setHighlightSkillId] = useState<number | null>(null);
   const [floatingXP, setFloatingXP] = useState<{ id: number; xp: number; color: string } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPartyInfo, setShowPartyInfo] = useState(false);
+
+  const partyCode = localStorage.getItem('partyCode') ?? '';
+  const partyName = localStorage.getItem('partyName') ?? 'Your Party';
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -98,8 +102,8 @@ export default function App() {
               )}
             </div>
 
-            {/* Right: party stats */}
-            <div className="flex gap-4" style={{ flexShrink: 0 }}>
+            {/* Right: party stats + party button */}
+            <div className="flex items-center gap-4" style={{ flexShrink: 0 }}>
               <div className="text-center">
                 <div style={{ color: '#ffd700', fontSize: '0.9rem' }}>{totalLevel}</div>
                 <div style={{ color: '#4a3f8c', fontSize: '0.38rem' }}>TOTAL LV</div>
@@ -108,6 +112,15 @@ export default function App() {
                 <div style={{ color: '#00cc44', fontSize: '0.9rem' }}>{questsCompleted}</div>
                 <div style={{ color: '#4a3f8c', fontSize: '0.38rem' }}>QUESTS</div>
               </div>
+              <button
+                onClick={() => setShowPartyInfo(true)}
+                title="Party info"
+                style={{
+                  background: 'transparent', border: '1px solid #2d1b69',
+                  color: '#4a3f8c', fontSize: '0.55rem', padding: '4px 6px',
+                  cursor: 'pointer', fontFamily: '"Press Start 2P"',
+                }}
+              >⚑</button>
             </div>
           </div>
         </div>
@@ -174,6 +187,53 @@ export default function App() {
       <AnimatePresence>
         {floatingXP && (
           <FloatingXP key={floatingXP.id} xp={floatingXP.xp} color={floatingXP.color} />
+        )}
+      </AnimatePresence>
+
+      {/* Party Info */}
+      <AnimatePresence>
+        {showPartyInfo && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: 'rgba(0,0,0,0.85)' }}
+            onClick={() => setShowPartyInfo(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.85, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.85, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              className="pixel-window-gold p-6 w-full"
+              style={{ maxWidth: 360, textAlign: 'center' }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ color: '#ffd700', fontSize: '0.6rem', marginBottom: '0.5rem' }}>⚑ YOUR PARTY</div>
+              <div style={{ color: '#e8d5a3', fontSize: '0.55rem', marginBottom: '1.5rem' }}>{partyName}</div>
+
+              <div style={{ color: '#6b5ca5', fontSize: '0.42rem', marginBottom: '0.5rem' }}>PARTY CODE</div>
+              <div style={{
+                background: '#050310', border: '2px solid #ffd700',
+                padding: '0.75rem 1rem', marginBottom: '0.5rem',
+                letterSpacing: '0.2em', color: '#ffd700', fontSize: '1rem',
+              }}>
+                {partyCode}
+              </div>
+              <div style={{ color: '#4a3f8c', fontSize: '0.35rem', lineHeight: 2, marginBottom: '1.5rem' }}>
+                SHARE THIS CODE WITH YOUR COMPANIONS
+              </div>
+
+              <div className="flex gap-3">
+                <button className="pixel-btn pixel-btn-primary flex-1" onClick={() => setShowPartyInfo(false)}>
+                  CLOSE
+                </button>
+                <button
+                  className="pixel-btn pixel-btn-red flex-1"
+                  onClick={() => { setShowPartyInfo(false); onLeave?.(); }}
+                >
+                  LEAVE PARTY
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 

@@ -11,8 +11,14 @@ function Root() {
     setPartyCode(localStorage.getItem('partyCode'));
   }
 
+  function handleLeave() {
+    localStorage.removeItem('partyCode');
+    localStorage.removeItem('partyName');
+    setPartyCode(null);
+  }
+
   if (!partyCode) return <GatherParty onJoined={handleJoined} />;
-  return <App />;
+  return <App onLeave={handleLeave} />;
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
