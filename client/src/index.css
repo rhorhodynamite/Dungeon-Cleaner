@@ -1,0 +1,236 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  image-rendering: pixelated;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #0d0d1a;
+  color: #e8d5a3;
+  font-family: 'Press Start 2P', monospace;
+  margin: 0;
+  min-height: 100vh;
+  /* Subtle scanline overlay */
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+}
+
+/* SNES pixel window border */
+.pixel-window {
+  background: #1a1040;
+  border: 3px solid #6b5ca5;
+  box-shadow:
+    0 0 0 3px #0d0d1a,
+    0 0 0 5px #4a3f8c,
+    6px 6px 0 5px #000000;
+  position: relative;
+}
+
+.pixel-window-gold {
+  background: #1a1040;
+  border: 3px solid #ffd700;
+  box-shadow:
+    0 0 0 3px #0d0d1a,
+    0 0 0 5px #aa8800,
+    6px 6px 0 5px #000000;
+  position: relative;
+}
+
+/* Pixel button */
+.pixel-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.6rem;
+  padding: 8px 14px;
+  cursor: pointer;
+  border: none;
+  position: relative;
+  transition: transform 0.05s, box-shadow 0.05s;
+  image-rendering: pixelated;
+  letter-spacing: 0.05em;
+}
+
+.pixel-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: none !important;
+}
+
+.pixel-btn-primary {
+  background: #2d1b69;
+  color: #ffd700;
+  border: 2px solid #6b5ca5;
+  box-shadow: 3px 3px 0 #000;
+}
+
+.pixel-btn-primary:hover {
+  background: #3d2b89;
+  border-color: #ffd700;
+}
+
+.pixel-btn-green {
+  background: #004400;
+  color: #00cc44;
+  border: 2px solid #00cc44;
+  box-shadow: 3px 3px 0 #000;
+}
+
+.pixel-btn-green:hover {
+  background: #006600;
+}
+
+.pixel-btn-red {
+  background: #440000;
+  color: #ff3333;
+  border: 2px solid #ff3333;
+  box-shadow: 3px 3px 0 #000;
+}
+
+.pixel-btn-red:hover {
+  background: #660000;
+}
+
+/* XP bar */
+.xp-bar-track {
+  background: #0d0014;
+  border: 2px solid #4a3f8c;
+  height: 14px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.xp-bar-fill {
+  height: 100%;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.xp-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2s linear infinite;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #0d0d1a; }
+::-webkit-scrollbar-thumb { background: #4a3f8c; border: 1px solid #6b5ca5; }
+
+/* Pixel input */
+.pixel-input {
+  background: #0a0820;
+  border: 2px solid #6b5ca5;
+  color: #e8d5a3;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.6rem;
+  padding: 8px 10px;
+  outline: none;
+  width: 100%;
+}
+
+.pixel-input:focus {
+  border-color: #ffd700;
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+}
+
+/* Level badge */
+.level-badge {
+  background: #000;
+  border: 2px solid #ffd700;
+  color: #ffd700;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.5rem;
+  padding: 2px 6px;
+  display: inline-block;
+}
+
+/* Star sparkle for level up */
+.sparkle {
+  pointer-events: none;
+  position: absolute;
+  font-size: 1.2rem;
+  animation: floatUp 1.5s ease-out forwards;
+}
+
+/* Cursor blink in text areas */
+.cursor::after {
+  content: '▮';
+  animation: blink 1s step-end infinite;
+}
+
+/* Select override */
+.pixel-select {
+  background: #0a0820;
+  border: 2px solid #6b5ca5;
+  color: #e8d5a3;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  padding: 8px 10px;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.pixel-select:focus {
+  border-color: #ffd700;
+}
+
+/* ── Character arm animations ─────────────────────────────────────────────────
+   Applied to plain SVG <g> elements. transform-box: fill-box makes
+   transform-origin: top center relative to each arm's own bounding box.
+*/
+.arm-base {
+  transform-box: fill-box;
+  transform-origin: top center;
+}
+@keyframes armSwingL {
+  from { transform: rotate(-16deg); }
+  to   { transform: rotate(16deg);  }
+}
+@keyframes armSwingR {
+  from { transform: rotate(16deg);  }
+  to   { transform: rotate(-16deg); }
+}
+@keyframes armCelebrateL {
+  0%   { transform: rotate(0deg);    }
+  28%  { transform: rotate(-115deg); }
+  55%  { transform: rotate(-100deg); }
+  80%  { transform: rotate(-20deg);  }
+  100% { transform: rotate(0deg);    }
+}
+@keyframes armCelebrateR {
+  0%   { transform: rotate(0deg);   }
+  28%  { transform: rotate(115deg); }
+  55%  { transform: rotate(100deg); }
+  80%  { transform: rotate(20deg);  }
+  100% { transform: rotate(0deg);   }
+}
+@keyframes armLevelUpL {
+  0%   { transform: rotate(0deg);    }
+  14%  { transform: rotate(-120deg); }
+  30%  { transform: rotate(-12deg);  }
+  50%  { transform: rotate(-115deg); }
+  65%  { transform: rotate(-10deg);  }
+  100% { transform: rotate(0deg);    }
+}
+@keyframes armLevelUpR {
+  0%   { transform: rotate(0deg);   }
+  14%  { transform: rotate(120deg); }
+  30%  { transform: rotate(12deg);  }
+  50%  { transform: rotate(115deg); }
+  65%  { transform: rotate(10deg);  }
+  100% { transform: rotate(0deg);   }
+}
