@@ -1,5 +1,14 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import db from '../db';
+
+const joinLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many attempts, try again in 15 minutes' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const router = Router();
 
@@ -28,8 +37,8 @@ router.post('/', (req, res) => {
   res.status(201).json(party);
 });
 
-// GET /api/parties/:code — look up a party by code
-router.get('/:code', (req, res) => {
+// GET /api/parties/:code — look up a party by code (rate limited)
+router.get('/:code', joinLimiter, (req, res) => {
   const party = db.prepare('SELECT * FROM parties WHERE code = ?').get(req.params.code.toUpperCase());
   if (!party) return res.status(404).json({ error: 'Party not found' });
   res.json(party);
