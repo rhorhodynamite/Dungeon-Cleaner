@@ -1,0 +1,10 @@
+[build]
+command = "npm run build"
+
+[deploy]
+command = "npm start"
+startCommand = "npm start"
+
+[[deploy.envVars]]
+name = "NODE_ENV"
+value = "production"

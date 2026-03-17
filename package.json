@@ -1,9 +1,12 @@
 {
   "name": "rpg-todo",
   "private": true,
+  "engines": { "node": ">=22" },
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
-    "install:all": "npm install && npm install --prefix server && npm install --prefix client"
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
+    "build": "npm install --prefix client && npm run build --prefix client && npm install --prefix server",
+    "start": "node --import tsx/esm server/src/index.ts"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

@@ -14,10 +14,10 @@ const TASK_SELECT = `
 
 router.get('/', (req, res) => {
   const { skill_id, completed } = req.query;
-  let query = TASK_SELECT + ' WHERE 1=1';
-  const params: any[] = [];
+  let query = TASK_SELECT + ' WHERE u.party_id = ?';
+  const params: any[] = [req.partyId];
 
-  if (skill_id)             { query += ' AND t.skill_id = ?';  params.push(skill_id); }
+  if (skill_id)                { query += ' AND t.skill_id = ?';  params.push(skill_id); }
   if (completed !== undefined) { query += ' AND t.completed = ?'; params.push(completed === 'true' ? 1 : 0); }
   query += ' ORDER BY t.created_at DESC';
 
@@ -27,16 +27,24 @@ router.get('/', (req, res) => {
 router.post('/', (req, res) => {
   const { title, skill_id, xp_reward } = req.body;
   if (!title?.trim() || !skill_id) return res.status(400).json({ error: 'title and skill_id required' });
+
+  // Verify skill belongs to this party
+  const skill = db.prepare(`
+    SELECT s.id FROM skills s JOIN users u ON s.user_id = u.id WHERE s.id = ? AND u.party_id = ?
+  `).get(skill_id, req.partyId);
+  if (!skill) return res.status(403).json({ error: 'Skill not in your party' });
+
   const xp = Number(xp_reward) || 50;
-  const result = db.prepare(
-    'INSERT INTO tasks (title, skill_id, xp_reward) VALUES (?, ?, ?)'
-  ).run(title.trim(), skill_id, xp);
+  const result = db.prepare('INSERT INTO tasks (title, skill_id, xp_reward) VALUES (?, ?, ?)').run(title.trim(), skill_id, xp);
   const task = db.prepare(TASK_SELECT + ' WHERE t.id = ?').get(result.lastInsertRowid);
   res.status(201).json(task);
 });
 
 router.put('/:id/complete', (req, res) => {
-  const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(req.params.id) as any;
+  // Verify task belongs to this party
+  const task = db.prepare(
+    `SELECT t.* FROM tasks t JOIN skills s ON t.skill_id = s.id JOIN users u ON s.user_id = u.id WHERE t.id = ? AND u.party_id = ?`
+  ).get(req.params.id, req.partyId) as any;
   if (!task) return res.status(404).json({ error: 'Task not found' });
   if (task.completed) return res.status(400).json({ error: 'Already completed' });
 
@@ -56,7 +64,11 @@ router.put('/:id/complete', (req, res) => {
 });
 
 router.delete('/:id', (req, res) => {
-  db.prepare('DELETE FROM tasks WHERE id = ?').run(req.params.id);
+  db.prepare(`
+    DELETE FROM tasks WHERE id = ? AND skill_id IN (
+      SELECT s.id FROM skills s JOIN users u ON s.user_id = u.id WHERE u.party_id = ?
+    )
+  `).run(req.params.id, req.partyId);
   res.status(204).send();
 });
 

@@ -3,9 +3,8 @@ import db, { xpForNextLevel } from '../db';
 
 const router = Router();
 
-router.get('/', (_req, res) => {
-  const users = db.prepare('SELECT * FROM users ORDER BY created_at ASC').all() as any[];
-  // Attach total level for each user
+router.get('/', (req, res) => {
+  const users = db.prepare('SELECT * FROM users WHERE party_id = ? ORDER BY created_at ASC').all(req.partyId) as any[];
   const withStats = users.map(u => {
     const skills = db.prepare('SELECT level FROM skills WHERE user_id = ?').all(u.id) as any[];
     const totalLevel = skills.reduce((sum: number, s: any) => sum + s.level, 0);
@@ -22,12 +21,11 @@ router.post('/', (req, res) => {
   if (!name?.trim()) return res.status(400).json({ error: 'Name required' });
   try {
     const result = db.prepare(
-      'INSERT INTO users (name, sprite, color) VALUES (?, ?, ?)'
-    ).run(name.trim(), sprite || 'knight', color || '#ff6b35');
+      'INSERT INTO users (party_id, name, sprite, color) VALUES (?, ?, ?, ?)'
+    ).run(req.partyId, name.trim(), sprite || 'knight', color || '#ff6b35');
 
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid) as any;
 
-    // Seed default skills for new user
     const seedSkills = [
       { name: 'Cleaning', icon: '🧹', color: '#4488ff' },
       { name: 'Laundry',  icon: '👕', color: '#aa44ff' },
@@ -40,13 +38,14 @@ router.post('/', (req, res) => {
 
     res.status(201).json({ ...user, totalLevel: 4, questsDone: 0 });
   } catch (e: any) {
-    if (e.message.includes('UNIQUE')) return res.status(409).json({ error: 'Name already taken' });
+    if (e.message.includes('UNIQUE')) return res.status(409).json({ error: 'Name already taken in this party' });
     res.status(500).json({ error: e.message });
   }
 });
 
 router.delete('/:id', (req, res) => {
-  db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id);
+  // Ensure the user belongs to this party
+  db.prepare('DELETE FROM users WHERE id = ? AND party_id = ?').run(req.params.id, req.partyId);
   res.status(204).send();
 });
 
