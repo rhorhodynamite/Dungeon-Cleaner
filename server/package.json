@@ -2,7 +2,8 @@
   "name": "rpg-todo-server",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
